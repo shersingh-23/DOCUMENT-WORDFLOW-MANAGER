@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - DocuFlow{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background: linear-gradient(160deg, #050714 10%, #0a0f2a 90%);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .glass {
+        background: rgba(30, 41, 59, 0.65);
+        border: 1px solid rgba(100, 116, 139, 0.25);
+        backdrop-filter: blur(14px);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .search-input {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        color: white;
+        width: 100%;
+    }
+
+    .nav-link.active {
+        background-color: rgba(6, 182, 212, 0.1);
+        color: #67e8f9;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside
+        class="w-64 bg-slate-900/60 backdrop-blur-lg text-white fixed top-0 left-0 flex flex-col justify-between border-r border-slate-700 z-40 h-screen">
+        <div>
+            <!-- Profile -->
+            <div class="flex flex-col items-center px-4 pt-6 pb-4 border-b border-slate-700">
+                <img src="{{ url_for('static', filename='img/default_avatar.png') }}" alt="Profile Picture"
+                    class="w-24 h-24 rounded-full object-cover border-2 border-cyan-400 shadow mb-3" />
+                <div class="text-center">
+                    <p class="text-xl font-bold">Admin</p>
+                    <p class="text-sm text-slate-400">Administrator</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="mt-6 px-4 space-y-2">
+                <a href="#" onclick="showSection('overview')"
+                    class="nav-link active block px-4 py-2 rounded-lg font-medium">Overview</a>
+                <a href="#" onclick="showSection('users')"
+                    class="nav-link block px-4 py-2 rounded-lg font-medium">Manage Users</a>
+                <a href="#" onclick="showSection('documents')"
+                    class="nav-link block px-4 py-2 rounded-lg font-medium">Manage Documents</a>
+            </nav>
+        </div>
+
+        <!-- Logout -->
+        <div class="p-4 border-t border-slate-700">
+            <a href="{{ url_for('logout') }}"
+                class="block text-center bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm">Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 ml-64 p-6 md:p-10 text-slate-100">
+
+        <!-- Overview Section -->
+        <section id="overview-section">
+            <h2 class="text-2xl font-bold mb-8">Admin Dashboard</h2>
+
+            <!-- Top Row: Totals -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10 items-start">
+                <!-- Totals -->
+                <div class="glass text-center p-6">
+                    <p class="text-3xl font-bold">{{ stats.total_users }}</p>
+                    <p class="text-sm text-slate-400">Total Users</p>
+                </div>
+                <div class="glass text-center p-6">
+                    <p class="text-3xl font-bold">{{ stats.total_documents }}</p>
+                    <p class="text-sm text-slate-400">Total Documents</p>
+                </div>
+            </div>
+
+            <!-- Status Summary + Bar Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+                <!-- Left: All Status Cards -->
+                <div class="glass p-4">
+                    <h3 class="text-lg font-semibold mb-4">Document Status Summary</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="glass text-center p-4">
+                            <p class="text-2xl font-bold">{{ stats.approved_documents }}</p>
+                            <p class="text-sm text-slate-400">Approved</p>
+                        </div>
+                        <div class="glass text-center p-4">
+                            <p class="text-2xl font-bold">{{ stats.rejected_documents }}</p>
+                            <p class="text-sm text-slate-400">Rejected</p>
+                        </div>
+                        <div class="glass text-center p-4">
+                            <p class="text-2xl font-bold">{{ stats.review_documents }}</p>
+                            <p class="text-sm text-slate-400">In Review</p>
+                        </div>
+                        <div class="glass text-center p-4">
+                            <p class="text-2xl font-bold">{{ stats.draft_documents }}</p>
+                            <p class="text-sm text-slate-400">Draft</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Bar Chart -->
+                <div class="glass p-4 flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-4">Document Status Overview</h3>
+                    <canvas id="statusBarChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="glass">
+                <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                {% if recent_activity %}
+                <ul class="space-y-3">
+                    {% for activity in recent_activity %}
+                    <li class="border-l-4 border-cyan-500 pl-4">
+                        <p class="text-sm">{{ activity.comment }}</p>
+                        <p class="text-xs text-slate-400 mt-1">
+                            By {{ activity.reviewer_name }}
+                            {% if activity.reviewer_name != 'Admin' %}(Reviewer){% endif %}
+                            on {{ activity.created_at }}
+                            • Document: {{ activity.title }}
+                        </p>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-slate-400">No recent activity.</p>
+                {% endif %}
+
+            </div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users-section" class="hidden">
+            <h2 class="text-2xl font-bold mb-8">Manage Users</h2>
+
+            <div class="glass mb-6">
+                <h3 class="text-lg font-semibold mb-4">Add Reviewer</h3>
+                <form method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" name="name" placeholder="Full Name" required
+                        class="border border-slate-600 p-2 rounded bg-slate-800 text-white">
+                    <input type="email" name="email" placeholder="Email" required
+                        class="border border-slate-600 p-2 rounded bg-slate-800 text-white">
+                    <input type="password" name="password" placeholder="Password" required
+                        class="border border-slate-600 p-2 rounded bg-slate-800 text-white">
+                    <button type="submit"
+                        class="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 col-span-1 md:col-span-3">Add
+                        Reviewer</button>
+                </form>
+            </div>
+
+            <input type="text" id="userSearch" class="search-input mb-4" placeholder="Search users...">
+
+            <div class="glass overflow-auto">
+                <h3 class="text-lg font-semibold mb-4">All Users</h3>
+                <table class="min-w-full text-sm" id="usersTable">
+                    <thead>
+                        <tr class="text-slate-300 border-b border-slate-600">
+                            <th class="py-2 px-3 text-left">ID</th>
+                            <th class="py-2 px-3 text-left">Name</th>
+                            <th class="py-2 px-3 text-left">Email</th>
+                            <th class="py-2 px-3 text-left">Role</th>
+                            <th class="py-2 px-3 text-left">Status</th>
+                            <th class="py-2 px-3 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr class="border-t border-slate-700">
+                            <td class="py-2 px-3">{{ loop.index }}</td>
+                            <td class="py-2 px-3">{{ user.name }}</td>
+                            <td class="py-2 px-3">{{ user.email }}</td>
+                            <td class="py-2 px-3">{{ user.role }}</td>
+                            <td class="py-2 px-3">{{ user.status }}</td>
+                            <td class="py-2 px-3 space-x-2">
+                                <a href="{{ url_for('delete_user', user_id=user.id) }}"
+                                    class="text-red-400 hover:underline"
+                                    onclick="return confirm('Are you sure?');">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Documents Section -->
+        <section id="documents-section" class="hidden">
+            <h2 class="text-2xl font-bold mb-8">Manage Documents</h2>
+
+            <input type="text" id="docSearch" class="search-input mb-6" placeholder="Search documents...">
+
+            {% set statuses = ['approved', 'rejected', 'review', 'draft'] %}
+            {% for status in statuses %}
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 capitalize">{{ status }} Documents</h3>
+                {% set filtered_docs = documents | selectattr('status', 'equalto', status) | list %}
+                {% if filtered_docs %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="docsTable">
+                    {% for doc in filtered_docs %}
+                    <div class="glass">
+                        <h4 class="text-lg font-semibold mb-1">{{ doc.title }}</h4>
+                        <p class="text-sm text-slate-400">Author: {{ doc.author_name }}</p>
+                        <p class="text-xs text-slate-500">Updated: {{ doc.updated_at }}</p>
+                        <p class="text-xs text-slate-400 mt-1">Status: <span class="capitalize">{{ doc.status }}</span>
+                        </p>
+                        <a href="{{ url_for('view_document', doc_id=doc.id) }}"
+                            class="text-cyan-400 hover:underline text-sm mt-2 inline-block">View</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-slate-500">No {{ status }} documents found.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </section>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function showSection(section) {
+        document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+        document.getElementById(section + '-section').classList.remove('hidden');
+
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // Search Filters
+    document.getElementById('userSearch').addEventListener('input', function () {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+        });
+    });
+    document.getElementById('docSearch').addEventListener('input', function () {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll('#docsTable .glass').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(term) ? '' : 'none';
+        });
+    });
+
+    // Responsive Bar Chart for Document Status Overview
+    new Chart(document.getElementById('statusBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Approved', 'Rejected', 'In Review', 'Draft'],
+            datasets: [{
+                label: 'Documents',
+                data: [{{ stats.approved_documents }}, {{ stats.rejected_documents }}, {{ stats.review_documents }}, {{ stats.draft_documents }}],
+        backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#facc15'],
+        borderRadius: 5,
+        borderWidth: 1,
+        }]
+    },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                beginAtZero: true
+            },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

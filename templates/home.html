@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}DocuFlow – Document Workflow Manager (Demo){% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    background: radial-gradient(1200px 800px at 10% 10%, rgba(109, 94, 252, .35), transparent 50%),
+                radial-gradient(900px 700px at 90% 10%, rgba(19, 198, 255, .28), transparent 50%),
+                linear-gradient(160deg, #050714 10%, #0a0f2a 90%);
+  }
+
+  .brand-text {
+    background: linear-gradient(90deg, #b7b2ff, #69d8ff, #c3b9ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass {
+    background: linear-gradient(180deg, rgba(20, 28, 58, .65), rgba(14, 18, 42, .65));
+    border: 1px solid rgba(150, 163, 255, .15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .05);
+    backdrop-filter: blur(12px);
+  }
+
+  .pill {
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .12);
+  }
+
+  .btn-gradient {
+    background: linear-gradient(to right, #7a6bff, #13c6ff);
+    color: white;
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(to right, #5a4eff, #0ca5e6);
+    transform: scale(1.05);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="relative z-10 px-6 mt-24 max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
+  <div>
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full pill text-xs text-slate-200/90 mb-4">
+      <span class="mx-1">•</span>
+      <span>Document Workflow Manager</span>
+    </div>
+    <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">
+      Manage proposals from <span class="brand-text">Draft → Review → Approved</span>
+    </h1>
+    <p class="mt-5 text-slate-300 text-lg leading-relaxed">
+      Small teams need a better way to collaborate, track status, and control versions. DocuFlow brings a
+      polished, modern workspace to your document workflow.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-4">
+      <a href="{{ url_for('register') }}" class="px-5 py-3 rounded-xl btn-gradient font-semibold">Try the Live Demo</a>
+      <a href="#features" class="px-5 py-3 rounded-xl pill text-slate-200 hover:text-white">See What’s Inside</a>
+    </div>
+  </div>
+
+  <div class="glass rounded-2xl p-6 md:p-8">
+    <div class="text-sm text-slate-300 mb-4">Project Overview</div>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="rounded-xl p-5 pill">
+        <div class="text-slate-200 font-semibold mb-1">Purpose</div>
+        <div class="text-slate-300/90 text-sm">Collaborative editing, status tracking, and version control for small teams.</div>
+      </div>
+      <div class="rounded-xl p-5 pill">
+        <div class="text-slate-200 font-semibold mb-1">Roles</div>
+        <div class="text-slate-300/90 text-sm">Creator, Reviewer, and Admin with simulated access in this demo.</div>
+      </div>
+      <div class="rounded-xl p-5 pill">
+        <div class="text-slate-200 font-semibold mb-1">Flow</div>
+        <div class="text-slate-300/90 text-sm">Draft → Review → Approved with clear steps and controls.</div>
+      </div>
+      <div class="rounded-xl p-5 pill">
+        <div class="text-slate-200 font-semibold mb-1">Output</div>
+        <div class="text-slate-300/90 text-sm">Open a print-friendly view to save as PDF.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section id="features" class="relative z-10 mt-28">
+  <div class="mx-auto max-w-7xl px-6">
+    <h2 class="text-3xl font-bold text-white mb-10 text-center">Platform Highlights</h2>
+    <div class="grid lg:grid-cols-3 gap-6">
+      {% set features = [
+        ("🛡️", "Role-based access", "Simulate Creator, Reviewer, or Admin and see the workspace adapt."),
+        ("📝", "Rich-text editor", "Create documents with headings, lists, links, and formatting."),
+        ("✅", "Status flow", "Move from Draft to Review to Approved with visible steps."),
+        ("🕒", "Version history", "Save, browse and restore previous document versions."),
+        ("⬇️", "PDF-ready", "Print-friendly view with export to PDF."),
+        ("🚀", "Built for teams", "Mobile-friendly, modern interface.")
+      ] %}
+      {% for icon, title, desc in features %}
+      <div class="glass rounded-2xl p-7 hover:scale-[1.02] transition">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+               style="background: linear-gradient(180deg,#7a6bff,#13c6ff)">{{ icon }}</div>
+          <div class="font-semibold text-lg">{{ title }}</div>
+        </div>
+        <p class="text-slate-300/90 text-sm">{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL SECTION -->
+<section class="mt-28 max-w-4xl mx-auto px-6 text-center">
+  <h2 class="text-3xl font-bold text-white mb-6">What People Say</h2>
+  <div class="glass rounded-xl p-8 text-slate-200 italic">
+    “DocuFlow completely streamlined how our team handles proposals. The version tracking and review flow are a game changer.”
+    <div class="mt-4 font-semibold not-italic">– John J., Product Lead</div>
+  </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="mt-28 text-center">
+  <div class="glass max-w-3xl mx-auto p-10 rounded-2xl">
+    <h2 class="text-3xl font-bold text-white">Ready to streamline your documents?</h2>
+    <p class="text-slate-300 mt-4">Create a free account and explore all features now.</p>
+    <div class="mt-6">
+      <a href="{{ url_for('register') }}" class="px-6 py-3 btn-gradient rounded-xl font-semibold">Get Started for Free</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

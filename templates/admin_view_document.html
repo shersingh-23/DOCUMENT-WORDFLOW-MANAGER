@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}View Document – Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    background: linear-gradient(160deg, #050714 10%, #0a0f2a 90%);
+  }
+
+  .glass {
+    background: rgba(30, 41, 59, 0.65);
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    backdrop-filter: blur(14px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .status-approved {
+    background-color: #22c55e33;
+    color: #22c55e;
+  }
+
+  .status-rejected {
+    background-color: #ef444433;
+    color: #ef4444;
+  }
+
+  .status-review {
+    background-color: #3b82f633;
+    color: #3b82f6;
+  }
+
+  .status-draft {
+    background-color: #facc1533;
+    color: #facc15;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 mb-20 text-slate-100">
+
+  <!-- Document Details -->
+  <div class="glass space-y-6">
+    <div>
+      <h2 class="text-2xl font-bold text-white">{{ doc.title }}</h2>
+      <p class="text-sm text-slate-400">
+        Author: {{ doc.author_name }} • Last updated: {{ doc.updated_at }}
+      </p>
+      <span class="status-badge status-{{ doc.status|lower }}">{{ doc.status|capitalize }}</span>
+    </div>
+
+    <div class="bg-white text-black rounded border border-slate-300 p-6 shadow prose max-w-none">
+      {{ doc.content | safe }}
+    </div>
+  </div>
+
+  <!-- Approve / Reject Form -->
+  <div class="glass mt-6">
+    <h3 class="text-lg font-semibold mb-4">Admin Actions</h3>
+    <form method="POST" class="space-y-4">
+      <label for="comment" class="block text-sm font-medium text-white">Comment (optional)</label>
+      <textarea id="comment" name="comment" rows="3" class="w-full rounded border p-2 text-black"></textarea>
+      <div class="flex gap-4">
+        <button type="submit" name="action" value="approve"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Approve</button>
+        <button type="submit" name="action" value="reject"
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Reject</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Version History -->
+  <!-- <div class="glass mt-6">
+    <h3 class="text-lg font-semibold mb-4">Version History</h3>
+    {% if versions %}
+      <ul class="space-y-2">
+        {% for v in versions %}
+          <li class="border border-slate-600 rounded p-2">
+            <strong>Version {{ v.version_number }}</strong> — {{ v.updated_at }}
+            <div class="text-xs text-slate-300 mt-1">{{ v.content | striptags | truncate(120) }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-slate-400">No version history available.</p>
+    {% endif %}
+  </div> -->
+
+  <!-- Comments -->
+  <div class="glass mt-6">
+    <h3 class="text-lg font-semibold mb-4">Comments</h3>
+    {% if comments %}
+    <ul class="space-y-3">
+      {% for c in comments %}
+      <li class="border-l-4 border-cyan-500 pl-4">
+        <p class="text-sm">{{ c.comment }}</p>
+        <p class="text-xs text-slate-400 mt-1">
+          By {{ c.reviewer_name if c.reviewer_name else c.author }}
+          {% if (c.reviewer_name if c.reviewer_name else c.author) != 'Admin' %}(Reviewer){% endif %}
+          on {{ c.created_at }}
+        </p>
+
+
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-slate-400">No comments yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Back Button -->
+  <div class="mt-6">
+    <a href="{{ url_for('admin_dashboard') }}"
+      class="text-sm px-4 py-2 rounded bg-slate-700 hover:bg-slate-800 text-white inline-block">
+      ← Back to Admin Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

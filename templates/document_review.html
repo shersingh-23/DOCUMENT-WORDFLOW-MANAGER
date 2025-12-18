@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Review Document - DocuFlow{% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    background: linear-gradient(160deg, #050714 10%, #0a0f2a 90%);
+  }
+
+  .glass {
+    background: rgba(30, 41, 59, 0.65);
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    backdrop-filter: blur(14px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 mb-20 text-slate-100">
+
+  <div class="glass space-y-8">
+
+    <!-- Header -->
+    <div>
+      <h2 class="text-2xl font-bold text-white">{{ doc['title'] }}</h2>
+      <p class="text-sm text-slate-400">By {{ doc['author_name'] }} &middot; Last updated: {{ doc['updated_at'] }}</p>
+    </div>
+
+    <!-- Document Content -->
+    <div class="bg-white border border-slate-300 rounded p-6 text-black shadow">
+      <div class="prose max-w-none" id="doc-content">
+        {{ doc['content'] | safe }}
+      </div>
+    </div>
+
+    <!-- Review Form -->
+    <form method="POST">
+      <div>
+        <label for="comment" class="block text-sm font-medium text-slate-300 mb-1">Review Comment</label>
+        <textarea name="comment" id="comment"
+                  class="w-full bg-slate-800 text-white border border-slate-600 rounded p-3"
+                  rows="4" placeholder="Write your feedback or remarks here..."></textarea>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-4">
+        <button type="submit" name="action" value="reject"
+                class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded">
+          Reject
+        </button>
+        <button type="submit" name="action" value="approve"
+                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded">
+          Approve
+        </button>
+      </div>
+    </form>
+
+    <!-- Previous Comments -->
+    {% if comments %}
+    <div>
+      <h3 class="text-lg font-semibold text-white mb-4">Previous Comments</h3>
+      <ul class="space-y-4">
+        {% for c in comments %}
+        <li class="border-l-4 border-cyan-500 pl-4">
+          <p class="text-sm text-white">{{ c['comment'] }}</p>
+          <p class="text-xs text-slate-400 mt-1">By {{ c['author'] }} on {{ c['created_at'] }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </div>
+  <div class="flex justify-between items-center mt-6">
+    <a href="{{ url_for('reviewer_dashboard') }}"
+       class="px-4 py-2 rounded bg-slate-700 hover:bg-slate-800 text-white text-sm">
+       ← Back to Completed Reviews
+    </a>
+  </div>
+</div>
+{% endblock %}

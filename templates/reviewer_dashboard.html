@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Reviewer Dashboard - DocuFlow{% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    background: linear-gradient(160deg, #050714 10%, #0a0f2a 90%);
+  }
+
+  .glass {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    backdrop-filter: blur(12px);
+    border-radius: 0.75rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex">
+
+  <!-- Sidebar -->
+  <aside class="w-64 h-screen bg-slate-900/60 backdrop-blur-lg text-white fixed top-0 left-0 flex flex-col justify-between border-r border-slate-700 z-40">
+    <div>
+      <!-- Profile -->
+      <div class="flex flex-col items-center px-4 pt-6 pb-4 border-b border-slate-700">
+        <img src="{{ url_for('static', filename='img/default_avatar.png') }}" alt="Profile Picture"
+             class="w-24 h-24 rounded-full object-cover border-2 border-cyan-400 shadow mb-3" />
+        <h1 class="text-xl font-bold">{{ user_name }}</h1>
+        <p class="text-sm text-slate-400">Reviewer</p>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="mt-6 px-4 space-y-2">
+        <a href="#" onclick="showSection('pending')" class="nav-link bg-cyan-500/10 text-cyan-300 block px-4 py-2 rounded-lg font-medium">
+          Pending Reviews</a>
+        <a href="#" onclick="showSection('completed')" class="nav-link text-slate-300 hover:bg-slate-700/30 block px-4 py-2 rounded-lg font-medium">
+          Completed Reviews</a>
+        <a href="#" onclick="showSection('activity')" class="nav-link text-slate-300 hover:bg-slate-700/30 block px-4 py-2 rounded-lg font-medium">
+          Recent Activity</a>
+      </nav>
+    </div>
+
+    <!-- Logout -->
+    <div class="p-4 border-t border-slate-700">
+      <a href="{{ url_for('logout') }}" class="block text-center bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm">
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="ml-64 p-6 md:p-8 w-full text-slate-100">
+
+    <!-- Pending Reviews -->
+    <section id="pending-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Pending Reviews</h2>
+        <form method="GET" class="flex items-center space-x-2">
+          <input type="text" name="q" placeholder="Search title or author" value="{{ request.args.get('q', '') }}"
+                 class="px-3 py-2 border border-slate-600 rounded bg-slate-800 text-white text-sm w-64">
+          <select name="sort" class="px-3 py-2 border border-slate-600 rounded bg-slate-800 text-white text-sm">
+            <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Newest</option>
+            <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>Oldest</option>
+            <option value="author" {% if request.args.get('sort') == 'author' %}selected{% endif %}>Author Name</option>
+          </select>
+          <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded text-sm">Apply</button>
+        </form>
+      </div>
+
+      {% if documents %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for doc in documents if doc['status'] == 'review' %}
+        <div class="glass p-5 hover:shadow-xl transition">
+          <h3 class="text-lg font-semibold text-white mb-1">{{ doc['title'] }}</h3>
+          <p class="text-sm text-slate-400">Author: {{ doc['author_name'] }}</p>
+          <p class="text-xs text-slate-500 mb-2">Updated: {{ doc['updated_at'] }}</p>
+          <p class="text-sm text-slate-400 mb-4 italic truncate">
+            {{ doc['content'] | striptags | truncate(100, True, '...') }}
+          </p>
+          <a href="{{ url_for('review_document', doc_id=doc['id']) }}" class="text-cyan-400 hover:underline text-sm font-medium">Review</a>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-12 text-slate-400">
+        No documents found for review.
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Completed Reviews -->
+    <section id="completed-section" class="hidden">
+      <h2 class="text-2xl font-bold mb-6">Completed Reviews</h2>
+      {% if documents %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for doc in documents if doc['status'] in ['approved', 'rejected'] %}
+        <div class="glass p-5 hover:shadow-xl transition">
+          <h3 class="text-lg font-semibold text-white mb-1">{{ doc['title'] }}</h3>
+          <p class="text-sm text-slate-400">Author: {{ doc['author_name'] }}</p>
+          <p class="text-xs text-slate-500 mb-2">Updated: {{ doc['updated_at'] }}</p>
+          <p class="text-sm">
+            Status:
+            {% if doc['status'] == 'approved' %}
+            <span class="text-green-400 font-medium">Approved</span>
+            {% else %}
+            <span class="text-red-400 font-medium">Rejected</span>
+            {% endif %}
+          </p>
+          <a href="{{ url_for('review_document', doc_id=doc['id']) }}" class="text-cyan-400 hover:underline text-sm font-medium">View</a>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-slate-400">No completed reviews available.</p>
+      {% endif %}
+    </section>
+
+    <!-- Recent Activity -->
+    <section id="activity-section" class="hidden">
+      <h2 class="text-4xl font-bold mb-6">Recent Activity</h2>
+      {% if recent_activities %}
+      <ul class="space-y-4">
+        {% for activity in recent_activities %}
+        <li class="border-l-4 border-cyan-500 pl-4">
+          <p class="text-lg text-white font-medium">{{ activity.document_name }}</p>
+          <p class="text-xs text-slate-400">Reviewed {{ activity.timestamp }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-slate-400">No recent review activity.</p>
+      {% endif %}
+    </section>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function showSection(section) {
+    const sections = ['pending', 'completed', 'activity'];
+    sections.forEach(id => {
+      document.getElementById(id + '-section').classList.add('hidden');
+    });
+    document.getElementById(section + '-section').classList.remove('hidden');
+
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => link.classList.remove('bg-cyan-500/10', 'text-cyan-300'));
+    event.target.classList.add('bg-cyan-500/10', 'text-cyan-300');
+  }
+</script>
+{% endblock %}

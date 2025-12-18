@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Creator Dashboard – DocuFlow{% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    background: radial-gradient(1200px 800px at 10% 10%, rgba(109, 94, 252, .35), transparent 50%),
+                radial-gradient(900px 700px at 90% 10%, rgba(19, 198, 255, .28), transparent 50%),
+                linear-gradient(160deg, #050714 10%, #0a0f2a 90%);
+  }
+
+  .glass {
+    background: linear-gradient(180deg, rgba(20, 28, 58, 0.65), rgba(14, 18, 42, 0.65));
+    border: 1px solid rgba(150, 163, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+  }
+
+  .sidebar {
+    min-height: 100vh;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      position: static !important;
+      width: 100% !important;
+      height: auto !important;
+    }
+    main {
+      margin-left: 0 !important;
+      padding: 1rem !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row">
+
+  <!-- Sidebar -->
+  <aside class="sidebar md:fixed top-0 left-0 md:h-screen md:w-64 w-full bg-slate-900/60 backdrop-blur-lg z-40 border-r border-slate-700 flex flex-col justify-between">
+    <div>
+      <!-- Profile -->
+      <div class="flex flex-col items-center px-4 pt-6 pb-4 border-b border-slate-700">
+        <img src="{{ url_for('static', filename='img/default_avatar.png') }}"
+             alt="Profile Picture"
+             class="w-24 h-24 rounded-full object-cover border-2 border-cyan-400 shadow mb-3" />
+        <h1 class="text-xl font-bold text-white text-center">{{ user_name }}</h1>
+        <p class="text-sm text-slate-400">Creator</p>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="mt-6 px-4 space-y-2">
+        <a href="#" onclick="showSection('overview')"
+           class="nav-link bg-cyan-500/10 text-cyan-300 block px-4 py-2 rounded-lg font-medium">
+           Overview</a>
+        <a href="#" onclick="showSection('documents')"
+           class="nav-link text-slate-300 hover:bg-slate-700/30 block px-4 py-2 rounded-lg font-medium">
+           Documents</a>
+      </nav>
+    </div>
+
+    <!-- Logout -->
+    <div class="p-4 border-t border-slate-700">
+      <a href="{{ url_for('logout') }}"
+         class="block text-center bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm">
+         Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="md:ml-64 p-6 md:p-8 w-full space-y-10 text-slate-100">
+
+    <!-- Overview Section -->
+    <section id="overview-section" class="section">
+      <h2 class="text-2xl font-bold mb-2">Welcome, {{ user_name }}!</h2>
+      <p class="text-slate-400 mb-6">Here’s what’s happening with your documents today.</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass rounded-xl p-6">
+          <p class="text-3xl font-bold">{{ documents | length }}</p>
+          <p class="text-slate-300 text-sm">Total Documents</p>
+        </div>
+        <div class="glass rounded-xl p-6">
+          <p class="text-3xl font-bold">
+            {{ documents | selectattr('status', 'equalto', 'approved') | list | length }}
+          </p>
+          <p class="text-slate-300 text-sm">Approved</p>
+        </div>
+        <div class="glass rounded-xl p-6">
+          <p class="text-3xl font-bold">
+            {{ documents | selectattr('status', 'equalto', 'review') | list | length }}
+          </p>
+          <p class="text-slate-300 text-sm">Pending Review</p>
+        </div>
+        <div class="glass rounded-xl p-6">
+          <p class="text-3xl font-bold">
+            {{ documents | selectattr('status', 'equalto', 'draft') | list | length }}
+          </p>
+          <p class="text-slate-300 text-sm">Drafts</p>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="glass rounded-xl mt-10">
+        <div class="p-6 border-b border-slate-700">
+          <h3 class="text-lg font-semibold">Recent Activity</h3>
+        </div>
+        <div class="p-6 space-y-4">
+          {% for activity in recent_activities %}
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-cyan-500/10 rounded-full flex items-center justify-center">
+              <svg class="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                      d="M4 4a2 2 0 012-2h4.6A2 2 0 0112 2.6L15.4 6A2 2 0 0116 7.4V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                      clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium">{{ activity.document_name }}</p>
+              <p class="text-xs text-slate-400">{{ activity.timestamp }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Documents Section -->
+    <section id="documents-section" class="section hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">My Documents</h2>
+        <a href="{{ url_for('create_document') }}"
+           class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd" />
+          </svg>
+          New Document
+        </a>
+      </div>
+
+      {% if documents %}
+      <div class="space-y-4">
+        {% for doc in documents %}
+        <div class="glass p-5 rounded-xl flex flex-col md:flex-row justify-between md:items-center">
+          <div class="mb-4 md:mb-0">
+            <p class="font-semibold text-white">{{ doc['title'] }}</p>
+            <p class="text-sm text-slate-400">Last modified: {{ doc['updated_at'] }}</p>
+            <p class="text-sm mt-1">
+              Status:
+              {% if doc['status'] == 'draft' %}
+                <span class="text-yellow-400">Draft</span>
+              {% elif doc['status'] == 'review' %}
+                <span class="text-blue-400">In Review</span>
+              {% elif doc['status'] == 'approved' %}
+                <span class="text-green-400">Approved</span>
+              {% elif doc['status'] == 'rejected' %}
+                <span class="text-red-400">Rejected</span>
+              {% endif %}
+            </p>
+          </div>
+          <div class="flex space-x-4 text-sm text-cyan-400">
+            <a href="{{ url_for('edit_document', doc_id=doc['id']) }}" class="hover:text-white">Edit</a>
+            <a href="{{ url_for('document_history', doc_id=doc['id']) }}" class="hover:text-white">History / Comments</a>
+            {% if doc['status'] == 'approved' %}
+              <a href="{{ url_for('download_pdf', doc_id=doc['id']) }}" class="hover:text-white">Download PDF</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-slate-400">You haven't created any documents yet.</p>
+      {% endif %}
+    </section>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function showSection(sectionName) {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => section.classList.add('hidden'));
+    document.getElementById(sectionName + '-section').classList.remove('hidden');
+
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => link.classList.remove('bg-cyan-500/10', 'text-cyan-300'));
+    event.target.classList.add('bg-cyan-500/10', 'text-cyan-300');
+  }
+</script>
+{% endblock %}
