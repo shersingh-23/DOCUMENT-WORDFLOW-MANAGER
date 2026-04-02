@@ -10,8 +10,7 @@ A simple and efficient document workflow management system designed to handle Wo
 - Word document management
 - Workflow automation
 - Search and organization
-- Version control (if implemented)
-- Secure access (optional)
+- Secure access 
 
 ---
 
@@ -23,12 +22,10 @@ Document Wordflow Manager helps users manage and process documents in a structur
 
 ## Tech Stack
 
-(Update this based on your project)
-
-- Backend: Node.js / Python / Java
+- Backend: Python
 - Frontend: HTML, CSS, JavaScript
-- Database: MySQL / MongoDB
-- Other Tools: Git, REST APIs
+- Database: MySQL 
+- Other Tools: Git
 
 ---
 
